@@ -25,22 +25,28 @@ class LLMClient:
         else:
             raise ValueError(f"Unknown model type: {model_type}")
 
-    def generate_response(self, model_type: str, system_prompt: str, user_message: str, model_name: str = "default") -> str:
+    def generate_response(self, model_type: str, system_prompt: str, user_message: str, model_name: str = "default", history: list = None) -> str:
         """Synchronously calls the LLM."""
+        print(f"   🧠 [LLM 呼叫] 呼叫模型: {model_type.upper()} ({model_name})")
+        print(f"      - User Msg: {user_message}")
         try:
             client = self.get_client(model_type)
+            messages = [{"role": "system", "content": system_prompt}]
+            if history:
+                messages.extend(history)
+            messages.append({"role": "user", "content": user_message})
+
             response = client.chat.completions.create(
                 model=model_name,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_message}
-                ],
+                messages=messages,
                 temperature=0.7,
                 max_tokens=500
             )
-            return response.choices[0].message.content
+            result = response.choices[0].message.content
+            print(f"      - 回應: {result.strip()}")
+            return result
         except Exception as e:
-            print(f"Error calling {model_type}: {e}")
+            print(f"      ❌ [錯誤] 呼叫 {model_type} 失敗: {e}")
             return f"[系統提示] 呼叫 {model_type} 失敗，請確認模型是否啟動或使用 Mock。"
 
 llm_client = LLMClient()

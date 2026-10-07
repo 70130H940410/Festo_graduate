@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, Request, HTTPException
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage
 from dotenv import load_dotenv
 
 from app.router_logic import router_logic
@@ -53,10 +53,23 @@ if not is_mock_line:
         user_message = event.message.text
         user_id = event.source.user_id
         
+        # 彩蛋：如果包含 peko
+        if "peko" in user_message.lower():
+            peko_img = "https://safebooru.org/images/333/37010189bce38ec15ce916f029f0fb18fb298d35.jpg"
+            line_bot_api.reply_message(
+                event.reply_token,
+                [
+                    TextSendMessage(text="HA↗HA↘HA↗HA↘HA↗ peko!"),
+                    ImageSendMessage(original_content_url=peko_img, preview_image_url=peko_img)
+                ]
+            )
+            return
+
         # Route message through our logic
         reply_text = router_logic.process_message(user_id, user_message)
         
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=reply_text)
-        )
+        if reply_text:
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text=reply_text)
+            )

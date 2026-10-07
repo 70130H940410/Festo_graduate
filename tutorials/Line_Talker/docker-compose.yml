@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env.example # Using example for now since .env isn't populated
+      - .env
     volumes:
       - .:/app
     restart: always
